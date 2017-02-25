@@ -1,14 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
-using Amazon.Lambda.Model;
-using Amazon.S3.Model;
+using BubbleBuster.Models;
 using Newtonsoft.Json;
 using Tweetinvi;
-using Tweetinvi.Models;
-using Tweetinvi.Parameters;
-using Environment = System.Environment;
 using JsonSerializer = Amazon.Lambda.Serialization.Json.JsonSerializer;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -38,16 +35,22 @@ namespace BubbleBuster
             //var users = currentUser.GetUsersYouRequestedToFollow();
             //return JsonConvert.SerializeObject(currentUser);
 
-            var timelines = new Dictionary<string, IEnumerable<ITweet>>();
-
+            var timelines = new TweetCollection();
             var followed = new List<string> {"FoxNews", "CNN", "MSNBC"};
             foreach (var screename in followed)
             {
-                var recentTweets = Timeline.GetUserTimeline(screename, 40);
-                timelines.Add(screename, recentTweets);
+                var recentTweets = Timeline.GetUserTimeline(screename, 5);
+                timelines.LatestTweets.Add(new TweetCollection.TweetsByScreenName {ScreenName = screename, Tweets = JsonConvert.SerializeObject(recentTweets)});
             }
 
-            return JsonConvert.SerializeObject(timelines);
+            var client = new AmazonDynamoDBClient();
+            var dynamoDb = new DynamoDBContext(client);
+
+            var result = dynamoDb.SaveAsync(timelines);
+            result.Wait();
+            return JsonConvert.SerializeObject(result);
+
+            //return "result";
         }
     }
 }

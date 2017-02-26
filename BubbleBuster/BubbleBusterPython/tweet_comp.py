@@ -8,10 +8,29 @@ import boto3, json, decimal, string
 from boto3.dynamodb.conditions import Key, Attr
 
 def lambda_handler(event, context):
+    # might need to use that fancy class at the bottom... maybe not. some of the
+    # examples seem not to use it...
     dynamo_records = event['Records'];
-    # iterate over records and do what you gotta do
 
+    # iterate over records and do what you gotta do
+    matching_tweets_ids = {
+        'fox': 123,
+        'cnn': 456,
+        'msnbc': 789
+    }
+
+    save_to_dyanmo(matching_tweets_ids);
     return dynamo_records
+
+def save_to_dyanmo(matching_tweets_ids):
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    table = dynamodb.Table('bubble-buster-tweet-comparison')
+    table.put_item(
+        Item={
+            'fox': matching_tweets_ids['fox'],
+            'cnn': matching_tweets_ids['cnn'],
+            'msnbc': matching_tweets_ids['msnbc'],
+        })
 
 def normalize(s):
     for p in string.punctuation:

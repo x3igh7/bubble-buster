@@ -6,7 +6,13 @@
 from fuzzywuzzy import fuzz, process
 import boto3, json, decimal, string
 from boto3.dynamodb.conditions import Key, Attr
- 
+
+def lambda_handler(event, context):
+    dynamo_records = event['Records'];
+    # iterate over records and do what you gotta do
+
+    return "dynamo_records"
+
 def normalize(s):
     for p in string.punctuation:
         s = s.replace(p, '')

@@ -22,7 +22,7 @@ namespace BubbleBuster.Models
         public class TweetsByScreenName
         {
             public string ScreenName { get; set; }
-            public string Tweets { get; set; }
+            public List<SlimTweets> Tweets { get; set; }
         }
     }
 }

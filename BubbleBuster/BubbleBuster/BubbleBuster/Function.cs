@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
@@ -19,10 +20,9 @@ namespace BubbleBuster
         /// <summary>
         ///     A simple function that takes a string and does a ToUpper
         /// </summary>
-        /// <param name="input"></param>
-        /// <param name="context"></param>
+        /// <param name="context">Lambda context.</param>
         /// <returns></returns>
-        public string FunctionHandler(ILambdaContext context)
+        public async void FunctionHandler(ILambdaContext context)
         {
             var consumerKey = Environment.GetEnvironmentVariable("ConsumerKey");
             var consumerSecret = Environment.GetEnvironmentVariable("ConsumerSecret");
@@ -31,26 +31,29 @@ namespace BubbleBuster
 
             Auth.SetUserCredentials(consumerKey, consumerSecret, accessToken, accessTokenSecret);
 
-            //var currentUser = User.GetAuthenticatedUser();
-            //var users = currentUser.GetUsersYouRequestedToFollow();
-            //return JsonConvert.SerializeObject(currentUser);
-
             var timelines = new TweetCollection();
             var followed = new List<string> {"FoxNews", "CNN", "MSNBC"};
             foreach (var screename in followed)
             {
-                var recentTweets = Timeline.GetUserTimeline(screename, 5);
-                timelines.LatestTweets.Add(new TweetCollection.TweetsByScreenName {ScreenName = screename, Tweets = JsonConvert.SerializeObject(recentTweets)});
+                var recentTweets = Timeline.GetUserTimeline(screename, 15);
+
+                var slimTweets = recentTweets.Select(
+                    tweet => new SlimTweets
+                    {
+                        Id = tweet.Id,
+                        Text = tweet.Text,
+                        CreatedDate = tweet.CreatedAt,
+                        CreatedByScreenName = tweet.CreatedBy.ScreenName
+                    }).ToList();
+
+                timelines.LatestTweets.Add(
+                    new TweetCollection.TweetsByScreenName {ScreenName = screename, Tweets = slimTweets});
             }
 
             var client = new AmazonDynamoDBClient();
             var dynamoDb = new DynamoDBContext(client);
 
-            var result = dynamoDb.SaveAsync(timelines);
-            result.Wait();
-            return JsonConvert.SerializeObject(result);
-
-            //return "result";
+            await dynamoDb.SaveAsync(timelines);
         }
     }
 }

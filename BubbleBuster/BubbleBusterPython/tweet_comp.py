@@ -27,9 +27,12 @@ def save_to_dyanmo(matching_tweets_ids):
     table = dynamodb.Table('bubble-buster-tweet-comparison')
     table.put_item(
         Item={
-            'fox': matching_tweets_ids['fox'],
-            'cnn': matching_tweets_ids['cnn'],
-            'msnbc': matching_tweets_ids['msnbc'],
+            'created': datetime.datetime,
+            'tweets': {
+                'fox': matching_tweets_ids['fox'],
+                'cnn': matching_tweets_ids['cnn'],
+                'msnbc': matching_tweets_ids['msnbc'],
+            }
         })
 
 def normalize(s):

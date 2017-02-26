@@ -3,8 +3,9 @@
 # ??
 # Profit
 
-import string
 from fuzzywuzzy import fuzz, process
+import boto3, json, decimal, string
+from boto3.dynamodb.conditions import Key, Attr
  
 def normalize(s):
     for p in string.punctuation:
@@ -35,13 +36,6 @@ for f in fox:
 
 # http://docs.aws.amazon.com/amazondynamodb/latest/gettingstartedguide/GettingStarted.Python.04.html
 # https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=bubble-buster-tweet-stream
-
-import boto3, json, decimal
-from boto3.dynamodb.conditions import Key, Attr
-
-access_key = 'AKIAIKNAALLTOLBXIAJQ'
-secret_access_key = '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'
-
 # Helper class to convert a DynamoDB item to JSON.
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):

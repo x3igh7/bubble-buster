@@ -5,7 +5,6 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.Lambda.Core;
 using BubbleBuster.Models;
-using Newtonsoft.Json;
 using Tweetinvi;
 using JsonSerializer = Amazon.Lambda.Serialization.Json.JsonSerializer;
 

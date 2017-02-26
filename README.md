@@ -1,6 +1,6 @@
 # bubble-buster
 
-Gonna bust a bubble
+_Gonna bust a bubble_
 
 Basic idea - try to find difference in reporting and responses regarding similar topics. 
 

@@ -11,7 +11,7 @@ def lambda_handler(event, context):
     dynamo_records = event['Records'];
     # iterate over records and do what you gotta do
 
-    return "dynamo_records"
+    return dynamo_records
 
 def normalize(s):
     for p in string.punctuation:

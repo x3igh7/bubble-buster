@@ -280,3 +280,4 @@ __pycache__/
 
 # AWS
 aws-lambda-tools-defaults.json
+/BubbleBuster/tweet_comp.zip

@@ -1,4 +1,4 @@
-# Pull in data from Twitter, Facebook, and Reddit(?)
+# Pull in data from Twitter
 # Use String Distance function to find similar headlines
 # ??
 # Profit
@@ -19,26 +19,17 @@ def lambda_handler(event, context):
         'msnbc': 789
     }
 
-    save_to_dyanmo(matching_tweets_ids);
+    save_to_dynamo(matching_tweets_ids);
     return dynamo_records
 
-def save_to_dyanmo(matching_tweets_ids):
+def save_to_dynamo(matching_tweets_ids):
     dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     table = dynamodb.Table('bubble-buster-tweet-comparison')
     table.put_item(
         Item={
-<<<<<<< HEAD:BubbleBuster/tweet_comp.py
             'fox': matching_tweets_ids['fox'],
             'cnn': matching_tweets_ids['cnn'],
             'msnbc': matching_tweets_ids['msnbc'],
-=======
-            'created': datetime.datetime,
-            'tweets': {
-                'fox': matching_tweets_ids['fox'],
-                'cnn': matching_tweets_ids['cnn'],
-                'msnbc': matching_tweets_ids['msnbc'],
-            }
->>>>>>> origin/develop:BubbleBuster/BubbleBusterPython/tweet_comp.py
         })
 
 def normalize(s):
@@ -66,6 +57,7 @@ class DecimalEncoder(json.JSONEncoder):
                 return int(o)
         return super(DecimalEncoder, self).default(o)
 
+# http://stackoverflow.com/questions/18967696/aws-command-line-interface-unable-to-locate-credentials-special-permissions
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 table = dynamodb.Table('bubble-buster-tweet-stream')
 
@@ -74,38 +66,28 @@ cnn_tweets = []
 msnbc_tweets = []
 matches = []
 
-fox = table.query(
-    ProjectionExpression="LatestTweets.ScreenName, DateCreated",
-    #ExpressionAttributeNames={ "#yr": "year" }, # Expression Attribute Names for Projection Expression only.
-    KeyConditionExpression=Key('LatestTweets.ScreenName').eq("FoxNews"))
+full_data = table.scan(ProjectionExpression="LatestTweets")
 
-for i in response[u'Items']:
-    fox_tweets.append((json.dumps(i, cls=DecimalEncoder)))
+for i in full_data[u'Items']:
+	for x in i['LatestTweets']:
+		for t in x['Tweets']:
+			if t['CreatedByScreenName'] == 'FoxNews':
+				fox_tweets.append((t['Text'],str(t['Id'])))
+			if t['CreatedByScreenName'] == 'MSNBC':
+				msnbc_tweets.append((t['Text'],str(t['Id'])))
+			if t['CreatedByScreenName'] == 'CNN':
+				cnn_tweets.append((t['Text'],str(t['Id'])))
+			else:
+				continue
 
-cnn = table.query(
-    ProjectionExpression="LatestTweets.ScreenName, DateCreated",
-    #ExpressionAttributeNames={ "#yr": "year" }, # Expression Attribute Names for Projection Expression only.
-    KeyConditionExpression=Key('LatestTweets.ScreenName').eq("CNN"))
-
-for i in response[u'Items']:
-    cnn_tweets.append((json.dumps(i, cls=DecimalEncoder)))
-
-msnbc = table.query(
-    ProjectionExpression="LatestTweets.ScreenName, DateCreated",
-    #ExpressionAttributeNames={ "#yr": "year" }, # Expression Attribute Names for Projection Expression only.
-    KeyConditionExpression=Key('LatestTweets.ScreenName').eq("MSNBC"))
-
-for i in response[u'Items']:
-<<<<<<< HEAD:BubbleBuster/tweet_comp.py
-    msnbc_tweets.append((json.dumps(i, cls=DecimalEncoder)))
-
-for f in fox:
-	for c in cnn:
-		for m in msnbc:
+# http://docs.aws.amazon.com/amazondynamodb/latest/gettingstartedguide/GettingStarted.Python.04.html
+# https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=bubble-buster-tweet-stream
+# #https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/BubbleBuster_TweetComparision?tab=code
+# https://github.com/x3igh7/bubble-buster/blob/develop/BubbleBuster/BubbleBusterPython/tweet_comp.py
+for f in fox_tweets:
+	for c in cnn_tweets:
+		for m in msnbc_tweets:
 			if clean_and_comp(f,c) > 60 and clean_and_comp(c,m) > 60 and clean_and_comp(f,m) > 60:
 				matches.append((f,c,m))
 			else:
 				continue
-=======
-    print(json.dumps(i, cls=DecimalEncoder))
->>>>>>> origin/develop:BubbleBuster/BubbleBusterPython/tweet_comp.py
